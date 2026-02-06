@@ -1,0 +1,462 @@
+{
+  "JFK": {
+    "code": "JFK",
+    "name": "John F. Kennedy International Airport",
+    "city": "New York",
+    "state": "New York",
+    "stateCode": "NY",
+    "lat": 40.6413,
+    "lon": -73.7781,
+    "distanceFromJFK": 0
+  },
+  "LAX": {
+    "code": "LAX",
+    "name": "Los Angeles International Airport",
+    "city": "Los Angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "lat": 33.9425,
+    "lon": -118.4081,
+    "distanceFromJFK": 2475
+  },
+  "SFO": {
+    "code": "SFO",
+    "name": "San Francisco International Airport",
+    "city": "San Francisco",
+    "state": "California",
+    "stateCode": "CA",
+    "lat": 37.6213,
+    "lon": -122.379,
+    "distanceFromJFK": 2586
+  },
+  "MIA": {
+    "code": "MIA",
+    "name": "Miami International Airport",
+    "city": "Miami",
+    "state": "Florida",
+    "stateCode": "FL",
+    "lat": 25.7959,
+    "lon": -80.287,
+    "distanceFromJFK": 1090
+  },
+  "FLL": {
+    "code": "FLL",
+    "name": "Fort Lauderdale-Hollywood International Airport",
+    "city": "Fort Lauderdale",
+    "state": "Florida",
+    "stateCode": "FL",
+    "lat": 26.0726,
+    "lon": -80.1527,
+    "distanceFromJFK": 1070
+  },
+  "MCO": {
+    "code": "MCO",
+    "name": "Orlando International Airport",
+    "city": "Orlando",
+    "state": "Florida",
+    "stateCode": "FL",
+    "lat": 28.4312,
+    "lon": -81.308,
+    "distanceFromJFK": 944
+  },
+  "TPA": {
+    "code": "TPA",
+    "name": "Tampa International Airport",
+    "city": "Tampa",
+    "state": "Florida",
+    "stateCode": "FL",
+    "lat": 27.9755,
+    "lon": -82.5332,
+    "distanceFromJFK": 1005
+  },
+  "PBI": {
+    "code": "PBI",
+    "name": "Palm Beach International Airport",
+    "city": "West Palm Beach",
+    "state": "Florida",
+    "stateCode": "FL",
+    "lat": 26.6832,
+    "lon": -80.0956,
+    "distanceFromJFK": 1028
+  },
+  "ORD": {
+    "code": "ORD",
+    "name": "O'Hare International Airport",
+    "city": "Chicago",
+    "state": "Illinois",
+    "stateCode": "IL",
+    "lat": 41.9742,
+    "lon": -87.9073,
+    "distanceFromJFK": 740
+  },
+  "DFW": {
+    "code": "DFW",
+    "name": "Dallas/Fort Worth International Airport",
+    "city": "Dallas",
+    "state": "Texas",
+    "stateCode": "TX",
+    "lat": 32.8998,
+    "lon": -97.0403,
+    "distanceFromJFK": 1391
+  },
+  "IAH": {
+    "code": "IAH",
+    "name": "George Bush Intercontinental Airport",
+    "city": "Houston",
+    "state": "Texas",
+    "stateCode": "TX",
+    "lat": 29.9902,
+    "lon": -95.3368,
+    "distanceFromJFK": 1428
+  },
+  "AUS": {
+    "code": "AUS",
+    "name": "Austin-Bergstrom International Airport",
+    "city": "Austin",
+    "state": "Texas",
+    "stateCode": "TX",
+    "lat": 30.1975,
+    "lon": -97.6664,
+    "distanceFromJFK": 1521
+  },
+  "BOS": {
+    "code": "BOS",
+    "name": "Boston Logan International Airport",
+    "city": "Boston",
+    "state": "Massachusetts",
+    "stateCode": "MA",
+    "lat": 42.3656,
+    "lon": -71.0096,
+    "distanceFromJFK": 187
+  },
+  "DCA": {
+    "code": "DCA",
+    "name": "Ronald Reagan Washington National Airport",
+    "city": "Washington",
+    "state": "District of Columbia",
+    "stateCode": "DC",
+    "lat": 38.8512,
+    "lon": -77.0402,
+    "distanceFromJFK": 228
+  },
+  "ATL": {
+    "code": "ATL",
+    "name": "Hartsfield-Jackson Atlanta International Airport",
+    "city": "Atlanta",
+    "state": "Georgia",
+    "stateCode": "GA",
+    "lat": 33.6407,
+    "lon": -84.4277,
+    "distanceFromJFK": 760
+  },
+  "SEA": {
+    "code": "SEA",
+    "name": "Seattle-Tacoma International Airport",
+    "city": "Seattle",
+    "state": "Washington",
+    "stateCode": "WA",
+    "lat": 47.4502,
+    "lon": -122.3088,
+    "distanceFromJFK": 2422
+  },
+  "DEN": {
+    "code": "DEN",
+    "name": "Denver International Airport",
+    "city": "Denver",
+    "state": "Colorado",
+    "stateCode": "CO",
+    "lat": 39.8561,
+    "lon": -104.6737,
+    "distanceFromJFK": 1631
+  },
+  "PHX": {
+    "code": "PHX",
+    "name": "Phoenix Sky Harbor International Airport",
+    "city": "Phoenix",
+    "state": "Arizona",
+    "stateCode": "AZ",
+    "lat": 33.4373,
+    "lon": -112.0078,
+    "distanceFromJFK": 2153
+  },
+  "LAS": {
+    "code": "LAS",
+    "name": "Harry Reid International Airport",
+    "city": "Las Vegas",
+    "state": "Nevada",
+    "stateCode": "NV",
+    "lat": 36.086,
+    "lon": -115.1537,
+    "distanceFromJFK": 2248
+  },
+  "SAN": {
+    "code": "SAN",
+    "name": "San Diego International Airport",
+    "city": "San Diego",
+    "state": "California",
+    "stateCode": "CA",
+    "lat": 32.7336,
+    "lon": -117.1897,
+    "distanceFromJFK": 2446
+  },
+  "MSP": {
+    "code": "MSP",
+    "name": "Minneapolis-Saint Paul International Airport",
+    "city": "Minneapolis",
+    "state": "Minnesota",
+    "stateCode": "MN",
+    "lat": 44.8848,
+    "lon": -93.2223,
+    "distanceFromJFK": 1028
+  },
+  "DTW": {
+    "code": "DTW",
+    "name": "Detroit Metropolitan Airport",
+    "city": "Detroit",
+    "state": "Michigan",
+    "stateCode": "MI",
+    "lat": 42.2162,
+    "lon": -83.3554,
+    "distanceFromJFK": 509
+  },
+  "CLT": {
+    "code": "CLT",
+    "name": "Charlotte Douglas International Airport",
+    "city": "Charlotte",
+    "state": "North Carolina",
+    "stateCode": "NC",
+    "lat": 35.214,
+    "lon": -80.9431,
+    "distanceFromJFK": 541
+  },
+  "RDU": {
+    "code": "RDU",
+    "name": "Raleigh-Durham International Airport",
+    "city": "Raleigh",
+    "state": "North Carolina",
+    "stateCode": "NC",
+    "lat": 35.8801,
+    "lon": -78.7875,
+    "distanceFromJFK": 427
+  },
+  "SLC": {
+    "code": "SLC",
+    "name": "Salt Lake City International Airport",
+    "city": "Salt Lake City",
+    "state": "Utah",
+    "stateCode": "UT",
+    "lat": 40.7899,
+    "lon": -111.9791,
+    "distanceFromJFK": 1990
+  },
+  "PDX": {
+    "code": "PDX",
+    "name": "Portland International Airport",
+    "city": "Portland",
+    "state": "Oregon",
+    "stateCode": "OR",
+    "lat": 45.5898,
+    "lon": -122.5951,
+    "distanceFromJFK": 2454
+  },
+  "RSW": {
+    "code": "RSW",
+    "name": "Southwest Florida International Airport",
+    "city": "Fort Myers",
+    "state": "Florida",
+    "stateCode": "FL",
+    "lat": 26.5362,
+    "lon": -81.7552,
+    "distanceFromJFK": 1080
+  },
+  "SJU": {
+    "code": "SJU",
+    "name": "Luis Muñoz Marín International Airport",
+    "city": "San Juan",
+    "state": "Puerto Rico",
+    "stateCode": "PR",
+    "lat": 18.4394,
+    "lon": -66.0018,
+    "distanceFromJFK": 1620
+  },
+  "BNA": {
+    "code": "BNA",
+    "name": "Nashville International Airport",
+    "city": "Nashville",
+    "state": "Tennessee",
+    "stateCode": "TN",
+    "lat": 36.1263,
+    "lon": -86.6774,
+    "distanceFromJFK": 765
+  },
+  "MSY": {
+    "code": "MSY",
+    "name": "Louis Armstrong New Orleans International Airport",
+    "city": "New Orleans",
+    "state": "Louisiana",
+    "stateCode": "LA",
+    "lat": 29.9934,
+    "lon": -90.258,
+    "distanceFromJFK": 1183
+  },
+  "SAT": {
+    "code": "SAT",
+    "name": "San Antonio International Airport",
+    "city": "San Antonio",
+    "state": "Texas",
+    "stateCode": "TX",
+    "lat": 29.5337,
+    "lon": -98.4698,
+    "distanceFromJFK": 1580
+  },
+  "JAX": {
+    "code": "JAX",
+    "name": "Jacksonville International Airport",
+    "city": "Jacksonville",
+    "state": "Florida",
+    "stateCode": "FL",
+    "lat": 30.4941,
+    "lon": -81.6879,
+    "distanceFromJFK": 836
+  },
+  "OAK": {
+    "code": "OAK",
+    "name": "Oakland International Airport",
+    "city": "Oakland",
+    "state": "California",
+    "stateCode": "CA",
+    "lat": 37.7213,
+    "lon": -122.2208,
+    "distanceFromJFK": 2578
+  },
+  "BUF": {
+    "code": "BUF",
+    "name": "Buffalo Niagara International Airport",
+    "city": "Buffalo",
+    "state": "New York",
+    "stateCode": "NY",
+    "lat": 42.9405,
+    "lon": -78.7322,
+    "distanceFromJFK": 301
+  },
+  "SYR": {
+    "code": "SYR",
+    "name": "Syracuse Hancock International Airport",
+    "city": "Syracuse",
+    "state": "New York",
+    "stateCode": "NY",
+    "lat": 43.1112,
+    "lon": -76.1063,
+    "distanceFromJFK": 209
+  },
+  "ROC": {
+    "code": "ROC",
+    "name": "Greater Rochester International Airport",
+    "city": "Rochester",
+    "state": "New York",
+    "stateCode": "NY",
+    "lat": 43.1189,
+    "lon": -77.6724,
+    "distanceFromJFK": 264
+  },
+  "PIT": {
+    "code": "PIT",
+    "name": "Pittsburgh International Airport",
+    "city": "Pittsburgh",
+    "state": "Pennsylvania",
+    "stateCode": "PA",
+    "lat": 40.4915,
+    "lon": -80.2329,
+    "distanceFromJFK": 340
+  },
+  "CLE": {
+    "code": "CLE",
+    "name": "Cleveland Hopkins International Airport",
+    "city": "Cleveland",
+    "state": "Ohio",
+    "stateCode": "OH",
+    "lat": 41.4117,
+    "lon": -81.8498,
+    "distanceFromJFK": 425
+  },
+  "IND": {
+    "code": "IND",
+    "name": "Indianapolis International Airport",
+    "city": "Indianapolis",
+    "state": "Indiana",
+    "stateCode": "IN",
+    "lat": 39.7173,
+    "lon": -86.2944,
+    "distanceFromJFK": 668
+  },
+  "MKE": {
+    "code": "MKE",
+    "name": "Milwaukee Mitchell International Airport",
+    "city": "Milwaukee",
+    "state": "Wisconsin",
+    "stateCode": "WI",
+    "lat": 42.9472,
+    "lon": -87.8966,
+    "distanceFromJFK": 738
+  },
+  "STL": {
+    "code": "STL",
+    "name": "St. Louis Lambert International Airport",
+    "city": "St. Louis",
+    "state": "Missouri",
+    "stateCode": "MO",
+    "lat": 38.7487,
+    "lon": -90.37,
+    "distanceFromJFK": 888
+  },
+  "MCI": {
+    "code": "MCI",
+    "name": "Kansas City International Airport",
+    "city": "Kansas City",
+    "state": "Missouri",
+    "stateCode": "MO",
+    "lat": 39.2976,
+    "lon": -94.7139,
+    "distanceFromJFK": 1097
+  },
+  "OMA": {
+    "code": "OMA",
+    "name": "Eppley Airfield",
+    "city": "Omaha",
+    "state": "Nebraska",
+    "stateCode": "NE",
+    "lat": 41.3032,
+    "lon": -95.8941,
+    "distanceFromJFK": 1244
+  },
+  "ABQ": {
+    "code": "ABQ",
+    "name": "Albuquerque International Sunport",
+    "city": "Albuquerque",
+    "state": "New Mexico",
+    "stateCode": "NM",
+    "lat": 35.0402,
+    "lon": -106.6092,
+    "distanceFromJFK": 1810
+  },
+  "HNL": {
+    "code": "HNL",
+    "name": "Daniel K. Inouye International Airport",
+    "city": "Honolulu",
+    "state": "Hawaii",
+    "stateCode": "HI",
+    "lat": 21.3187,
+    "lon": -157.9224,
+    "distanceFromJFK": 4983
+  },
+  "ANC": {
+    "code": "ANC",
+    "name": "Ted Stevens Anchorage International Airport",
+    "city": "Anchorage",
+    "state": "Alaska",
+    "stateCode": "AK",
+    "lat": 61.1743,
+    "lon": -149.9962,
+    "distanceFromJFK": 3386
+  }
+}
