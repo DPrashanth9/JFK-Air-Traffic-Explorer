@@ -32,9 +32,8 @@ backend/.env
 backend/.env.local
 *.env
 
-# Documentation files (markdown)
+# Documentation files (markdown) - exclude all .md files
 *.md
-!README.md
 
 # Python
 __pycache__/
