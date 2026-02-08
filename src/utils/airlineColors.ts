@@ -9,19 +9,36 @@
  */
 
 // Distinct, high-contrast colors for maximum clarity
+// Updated to reduce blue dominance for better map readability
 export const AIRLINE_COLORS: Record<string, string> = {
   'B6': '#0066CC', // JetBlue - Bright Blue
   'DL': '#C41E3A', // Delta - Red
   'AA': '#1E3A8A', // American - Deep Navy
-  'UA': '#00A1E4', // United - Cyan Blue
-  'AS': '#002244', // Alaska - Dark Blue
+  'UA': '#8B5CF6', // United - Purple (changed from Cyan Blue)
+  'AS': '#10B981', // Alaska - Green (changed from Dark Blue)
   'WN': '#FFC72C', // Southwest - Bright Yellow
   'NK': '#FFD100', // Spirit - Golden Yellow
-  'F9': '#7B68EE', // Frontier - Medium Slate Blue
+  'F9': '#EC4899', // Frontier - Pink (changed from Medium Slate Blue)
   'SY': '#FF4500', // Sun Country - Orange Red
   'G4': '#FF6600', // Allegiant - Orange
-  'HA': '#00A1E4', // Hawaiian - Sky Blue
+  'HA': '#F59E0B', // Hawaiian - Amber/Orange (changed from Sky Blue)
   'VX': '#FF1493', // Virgin America - Deep Pink
+};
+
+// Display names for airline codes (custom short forms)
+export const AIRLINE_DISPLAY_NAMES: Record<string, string> = {
+  'B6': 'JB', // JetBlue
+  'NK': 'SA', // Spirit Airlines
+  'DL': 'DL', // Delta
+  'AA': 'AA', // American
+  'UA': 'UA', // United
+  'AS': 'AS', // Alaska
+  'WN': 'WN', // Southwest
+  'F9': 'F9', // Frontier
+  'SY': 'SY', // Sun Country
+  'G4': 'G4', // Allegiant
+  'HA': 'HA', // Hawaiian
+  'VX': 'VX', // Virgin America
 };
 
 // Default color for unknown airlines
@@ -44,4 +61,14 @@ export function getAirlineColor(carrierCode: string | null | undefined): string 
  */
 export function getAllAirlineColors(): Array<[string, string]> {
   return Object.entries(AIRLINE_COLORS);
+}
+
+/**
+ * Get display name for a carrier code
+ * Returns custom short form if available, otherwise returns the code itself
+ */
+export function getAirlineDisplayName(carrierCode: string | null | undefined): string {
+  if (!carrierCode) return '';
+  const upperCode = carrierCode.toUpperCase();
+  return AIRLINE_DISPLAY_NAMES[upperCode] || upperCode;
 }

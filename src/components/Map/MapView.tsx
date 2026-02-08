@@ -2,7 +2,7 @@ import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { RouteRanking, StateRanking, RouteMode, FlightRoute } from '../../types';
 import { MAP_CONFIG, JFK_COORDINATES, COLORS, ROUTE_CONFIG } from '../../utils/constants';
-import { AIRLINE_COLORS, DEFAULT_AIRLINE_COLOR } from '../../utils/airlineColors';
+import { AIRLINE_COLORS, DEFAULT_AIRLINE_COLOR, getAirlineDisplayName } from '../../utils/airlineColors';
 import { routesToGeoJSON, routesToAirportsGeoJSON, getPointAlongLine } from '../../utils/mapUtils';
 import { formatNumber, formatDistance } from '../../utils/formatters';
 import { MapControls } from './MapControls';
@@ -1485,6 +1485,7 @@ export function MapView({
           // Get color for tooltip display
           const airlineColor = carrierCode ? AIRLINE_COLORS[carrierCode] || '#60a5fa' : '';
           const colorStyle = airlineColor ? `style="color: ${airlineColor};"` : '';
+          const displayCode = carrierCode ? getAirlineDisplayName(carrierCode) : '';
           
           const html = `
             <div class="text-sm">
@@ -1503,7 +1504,7 @@ export function MapView({
                 <span class="text-gray-400">Avg/Flight:</span>
                 <span class="text-white font-medium">${props.avgPerFlight}</span>
                 <span class="text-gray-400">Top Carrier:</span>
-                <span class="text-white font-medium" ${colorStyle}>${props.primaryCarrier}${carrierCode ? ` (${carrierCode})` : ''}</span>
+                <span class="text-white font-medium" ${colorStyle}>${props.primaryCarrier}${displayCode ? ` (${displayCode})` : ''}</span>
               </div>
             </div>
           `;
@@ -1838,7 +1839,7 @@ export function MapView({
                     style={{ backgroundColor: color }}
                   />
                   <span className={`text-gray-300 ${isHighlighted ? 'font-semibold text-white' : ''}`}>
-                    {code}
+                    {getAirlineDisplayName(code)}
                   </span>
                   {isHighlighted && (
                     <span className="ml-auto text-accent text-xs">●</span>
