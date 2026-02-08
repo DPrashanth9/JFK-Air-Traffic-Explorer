@@ -5,12 +5,6 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-interface ApiResponse<T> {
-  data: T | null;
-  error: string | null;
-  loading: boolean;
-}
-
 /**
  * Generic API fetch function
  */

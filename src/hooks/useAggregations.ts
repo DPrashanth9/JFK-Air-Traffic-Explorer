@@ -23,14 +23,12 @@ export function useAggregations({
   const [stateRankingsData, setStateRankingsData] = useState<StateRanking[]>([]);
   const [airlineRankingsData, setAirlineRankingsData] = useState<AirlineRanking[]>([]);
   const [routeRankingsData, setRouteRankingsData] = useState<RouteRanking[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   
   // Load all aggregation data
   useEffect(() => {
     if (!month) return; // Wait for month to be set
     
     async function loadAggregations() {
-      setIsLoading(true);
       try {
         // Load all data in parallel
         const [aggData, stateData, airlineData, routeData] = await Promise.all([
@@ -46,8 +44,6 @@ export function useAggregations({
         setRouteRankingsData(routeData.routes || []);
       } catch (error) {
         console.error('Failed to load aggregations:', error);
-      } finally {
-        setIsLoading(false);
       }
     }
     

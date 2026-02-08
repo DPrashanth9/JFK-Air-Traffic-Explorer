@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { FlightRoute, FilterState } from '../types';
 import { getFilters, getRoutes } from '../utils/api';
 

@@ -15,7 +15,6 @@ import type { RouteMode } from './types';
 function App() {
   // Data and filtering
   const {
-    allRoutes,
     filteredRoutes,
     filters,
     setMonth,

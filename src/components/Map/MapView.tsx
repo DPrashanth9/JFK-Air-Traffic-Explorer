@@ -43,7 +43,6 @@ export function MapView({
   const animationFrameRef = useRef<number | null>(null);
   const animationProgressRef = useRef<Map<string, number>>(new Map());
   const routeDrawInAnimationRef = useRef<number | null>(null);
-  const routeDrawInProgressRef = useRef<number>(0);
   const introFlowAnimationRef = useRef<number | null>(null);
   const introFlowProgressRef = useRef<Map<string, number>>(new Map());
   const introFlowRouteCacheRef = useRef<Map<string, { coordinates: [number, number][]; carrierCode: string }>>(new Map());
@@ -372,7 +371,7 @@ export function MapView({
         type: 'line',
         source: 'routes-airline',
         paint: {
-          'line-color': airlineColorExpression,
+          'line-color': airlineColorExpression as any,
           'line-width': [
             'interpolate',
             ['linear'],
@@ -508,7 +507,7 @@ export function MapView({
         }
 
         // Create destination airport icon layer (always create, even if icon failed)
-        if (!map.current.getLayer('dest-airports-icon')) {
+        if (map.current && !map.current.getLayer('dest-airports-icon')) {
           // Use custom icon if available, otherwise fallback to marker-15
           const iconImage = map.current.hasImage('airport-airplane') ? 'airport-airplane' : 'marker-15';
           
@@ -540,7 +539,7 @@ export function MapView({
         }
 
         // Create destination airport label layer
-        if (!map.current.getLayer('dest-airports-label')) {
+        if (map.current && !map.current.getLayer('dest-airports-label')) {
           map.current.addLayer({
             id: 'dest-airports-label',
             type: 'symbol',
@@ -575,7 +574,7 @@ export function MapView({
         }
 
         // Add debug circle layer (temporary - bright color to verify data exists)
-        if (!map.current.getLayer('dest-airports-debug')) {
+        if (map.current && !map.current.getLayer('dest-airports-debug')) {
           map.current.addLayer({
             id: 'dest-airports-debug',
             type: 'circle',
@@ -617,7 +616,7 @@ export function MapView({
         source: 'route-anim',
         paint: {
           'circle-radius': 7, // Increased from 5 to 7 for better visibility
-          'circle-color': introColorExpression,
+          'circle-color': introColorExpression as any,
           'circle-opacity': 1.0, // Increased from 0.9 for maximum visibility
           'circle-blur': 1.2, // Increased from 0.8 for enhanced glow effect
           'circle-stroke-color': '#ffffff',
@@ -904,6 +903,7 @@ export function MapView({
       const easedProgress = 1 - Math.pow(1 - progress, 3);
 
       // Update routes-base layer
+      if (!map.current) return;
       const baseLayer = map.current.getLayer('routes-base');
       if (baseLayer) {
         map.current.setPaintProperty('routes-base', 'line-opacity', easedProgress * 0.15);
@@ -946,6 +946,7 @@ export function MapView({
       } else {
         routeDrawInAnimationRef.current = null;
         // Reset to final state
+        if (!map.current) return;
         if (baseLayer) {
           map.current.setPaintProperty('routes-base', 'line-opacity', 0.15);
         }
@@ -1054,6 +1055,7 @@ export function MapView({
       });
 
       // Update source
+      if (!map.current) return;
       const animSource = map.current.getSource('route-anim') as mapboxgl.GeoJSONSource;
       if (animSource) {
         animSource.setData({
@@ -1109,7 +1111,7 @@ export function MapView({
 
     // Reset animation progress when routes change
     animationProgressRef.current.clear();
-    displayRoutes.forEach((route, idx) => {
+    displayRoutes.forEach((route) => {
       animationProgressRef.current.set(route.id, Math.random() * 0.3); // Stagger start
     });
 
@@ -1386,9 +1388,16 @@ export function MapView({
       const routesToAnimate = displayRoutes.slice(0, Math.min(50, displayRoutes.length));
       
       // Get route features for geometry lookup (try both sources)
+      if (!map.current) return;
       const routesSource = map.current.getSource('routes') as mapboxgl.GeoJSONSource;
       const airlineSource = map.current.getSource('routes-airline') as mapboxgl.GeoJSONSource;
-      const routeFeatures = (routesSource?._data?.features || airlineSource?._data?.features || []) as any[];
+      const routesData = routesSource?._data;
+      const airlineData = airlineSource?._data;
+      const routeFeatures = (
+        (routesData && typeof routesData !== 'string' && 'features' in routesData ? routesData.features : null) ||
+        (airlineData && typeof airlineData !== 'string' && 'features' in airlineData ? airlineData.features : null) ||
+        []
+      ) as any[];
       
       const features: GeoJSON.Feature<GeoJSON.Point>[] = routesToAnimate.map(route => {
         const routeId = route.id;
@@ -1430,7 +1439,9 @@ export function MapView({
           };
         }
         return null;
-      }).filter((f): f is GeoJSON.Feature<GeoJSON.Point> => f !== null);
+      }).filter((f): f is GeoJSON.Feature<GeoJSON.Point> => {
+        return f !== null && f !== undefined;
+      });
 
       flightsSource.setData({
         type: 'FeatureCollection',
