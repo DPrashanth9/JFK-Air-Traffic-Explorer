@@ -1399,49 +1399,49 @@ export function MapView({
         []
       ) as any[];
       
-      const features: GeoJSON.Feature<GeoJSON.Point>[] = routesToAnimate.map(route => {
-        const routeId = route.id;
-        let progress = animationProgressRef.current.get(routeId) || 0;
-        
-        // Update progress (speed varies slightly by distance for visual interest)
-        const speed = 0.003 + (route.distanceMiles / 3000) * 0.002; // Faster for longer routes
-        progress += speed;
-        if (progress > 1) progress = 0; // Loop
-        
-        animationProgressRef.current.set(routeId, progress);
+      const features: GeoJSON.Feature<GeoJSON.Point>[] = routesToAnimate
+        .map(route => {
+          const routeId = route.id;
+          let progress = animationProgressRef.current.get(routeId) || 0;
+          
+          // Update progress (speed varies slightly by distance for visual interest)
+          const speed = 0.003 + (route.distanceMiles / 3000) * 0.002; // Faster for longer routes
+          progress += speed;
+          if (progress > 1) progress = 0; // Loop
+          
+          animationProgressRef.current.set(routeId, progress);
 
-        // Find route feature for geometry
-        const routeFeature = routeFeatures.find((f: any) => f.properties?.id === routeId);
-        
-        if (routeFeature?.geometry?.coordinates) {
-          const point = getPointAlongLine(routeFeature.geometry.coordinates, progress);
+          // Find route feature for geometry
+          const routeFeature = routeFeatures.find((f: any) => f.properties?.id === routeId);
           
-          // Get carrier code from route feature or flightRoutes
-          const carrierCode = routeFeature.properties?.primaryCarrierCode || 
-                            flightRoutes?.find(fr => fr.destinationCode === route.destinationCode)?.carrierCode || 
-                            null;
-          
-          // Get normalized passengers for size scaling
-          const normalizedPassengers = routeFeature.properties?.normalizedPassengers || 0;
-          
-          return {
-            type: 'Feature',
-            properties: {
-              routeId,
-              destinationCode: route.destinationCode,
-              carrierCode: carrierCode,
-              normalizedPassengers: normalizedPassengers,
-            },
-            geometry: {
-              type: 'Point',
-              coordinates: point,
-            },
-          };
-        }
-        return null;
-      }).filter((f): f is GeoJSON.Feature<GeoJSON.Point> => {
-        return f !== null && f !== undefined;
-      });
+          if (routeFeature?.geometry?.coordinates) {
+            const point = getPointAlongLine(routeFeature.geometry.coordinates, progress);
+            
+            // Get carrier code from route feature or flightRoutes
+            const carrierCode = routeFeature.properties?.primaryCarrierCode || 
+                              flightRoutes?.find(fr => fr.destinationCode === route.destinationCode)?.carrierCode || 
+                              null;
+            
+            // Get normalized passengers for size scaling
+            const normalizedPassengers = routeFeature.properties?.normalizedPassengers || 0;
+            
+            return {
+              type: 'Feature' as const,
+              properties: {
+                routeId,
+                destinationCode: route.destinationCode,
+                carrierCode: carrierCode,
+                normalizedPassengers: normalizedPassengers,
+              },
+              geometry: {
+                type: 'Point' as const,
+                coordinates: point,
+              },
+            } as GeoJSON.Feature<GeoJSON.Point>;
+          }
+          return null;
+        })
+        .filter((f): f is GeoJSON.Feature<GeoJSON.Point> => f !== null);
 
       flightsSource.setData({
         type: 'FeatureCollection',
