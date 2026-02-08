@@ -1302,70 +1302,116 @@ export function MapView({
 
 
   // Handle airline route highlighting
+  // Works on all route layers regardless of colorByAirline setting
   useEffect(() => {
-    if (!map.current || !mapLoaded || !colorByAirline) return;
+    if (!map.current || !mapLoaded) return;
 
     try {
-      const airlineLayer = map.current.getLayer('routes-airline');
-      if (!airlineLayer) return;
-
-      // Update route opacity and width based on highlight
-      if (highlightedAirline) {
-        // Dim all routes except the highlighted airline
-        map.current.setPaintProperty('routes-airline', 'line-opacity', [
-          'case',
-          ['==', ['coalesce', ['get', 'primaryCarrierCode'], ''], highlightedAirline],
-          [
-            'interpolate',
-            ['linear'],
-            ['get', 'normalizedPassengers'],
-            0, ROUTE_CONFIG.minOpacity,
-            1, ROUTE_CONFIG.maxOpacity,
-          ],
-          0.15, // Dimmed opacity for non-highlighted routes
-        ] as any);
-        
-        // Make highlighted routes thicker
-        map.current.setPaintProperty('routes-airline', 'line-width', [
-          'case',
-          ['==', ['coalesce', ['get', 'primaryCarrierCode'], ''], highlightedAirline],
-          [
-            'interpolate',
-            ['linear'],
-            ['get', 'normalizedPassengers'],
-            0, ROUTE_CONFIG.minWidth * 1.5,
-            1, ROUTE_CONFIG.maxWidth * 1.5,
-          ],
-          [
-            'interpolate',
-            ['linear'],
-            ['get', 'normalizedPassengers'],
-            0, ROUTE_CONFIG.minWidth * 0.5,
-            1, ROUTE_CONFIG.maxWidth * 0.5,
-          ],
-        ] as any);
-      } else {
-        // Reset to normal opacity and width
-        map.current.setPaintProperty('routes-airline', 'line-opacity', [
-          'interpolate',
-          ['linear'],
-          ['get', 'normalizedPassengers'],
-          0, ROUTE_CONFIG.minOpacity,
-          1, ROUTE_CONFIG.maxOpacity,
-        ]);
-        
-        map.current.setPaintProperty('routes-airline', 'line-width', [
-          'interpolate',
-          ['linear'],
-          ['get', 'normalizedPassengers'],
-          0, ROUTE_CONFIG.minWidth,
-          1, ROUTE_CONFIG.maxWidth,
-        ]);
+      // Build a set of destination codes that have routes for the highlighted airline
+      const highlightedDestinations = new Set<string>();
+      if (highlightedAirline && flightRoutes) {
+        flightRoutes.forEach(fr => {
+          if (fr.carrierCode === highlightedAirline) {
+            highlightedDestinations.add(fr.destinationCode);
+          }
+        });
       }
+
+      // Helper function to update layer highlighting
+      const updateLayerHighlight = (layerId: string, isAirlineLayer: boolean) => {
+        const layer = map.current?.getLayer(layerId);
+        if (!layer) return;
+
+        if (highlightedAirline) {
+          // Check if route matches highlighted airline by:
+          // 1. primaryCarrierCode matches, OR
+          // 2. destinationCode is in highlightedDestinations set
+          const highlightExpression: any[] = [
+            'case',
+            // Check primaryCarrierCode match
+            ['==', ['coalesce', ['get', 'primaryCarrierCode'], ''], highlightedAirline],
+            true,
+            // Check if destination has flights from this airline
+            ['in', ['get', 'destinationCode'], ['literal', Array.from(highlightedDestinations)]],
+            true,
+            false
+          ];
+
+          // Dim all routes except the highlighted airline
+          map.current.setPaintProperty(layerId, 'line-opacity', [
+            'case',
+            highlightExpression,
+            isAirlineLayer
+              ? [
+                  'interpolate',
+                  ['linear'],
+                  ['get', 'normalizedPassengers'],
+                  0, ROUTE_CONFIG.minOpacity,
+                  1, ROUTE_CONFIG.maxOpacity,
+                ]
+              : 0.8, // For base/traffic layers, use fixed opacity
+            0.15, // Dimmed opacity for non-highlighted routes
+          ] as any);
+          
+          // Make highlighted routes thicker
+          map.current.setPaintProperty(layerId, 'line-width', [
+            'case',
+            highlightExpression,
+            [
+              'interpolate',
+              ['linear'],
+              ['get', 'normalizedPassengers'],
+              0, ROUTE_CONFIG.minWidth * 1.5,
+              1, ROUTE_CONFIG.maxWidth * 1.5,
+            ],
+            [
+              'interpolate',
+              ['linear'],
+              ['get', 'normalizedPassengers'],
+              0, ROUTE_CONFIG.minWidth * 0.5,
+              1, ROUTE_CONFIG.maxWidth * 0.5,
+            ],
+          ] as any);
+        } else {
+          // Reset to normal opacity and width
+          if (isAirlineLayer) {
+            map.current.setPaintProperty(layerId, 'line-opacity', [
+              'interpolate',
+              ['linear'],
+              ['get', 'normalizedPassengers'],
+              0, ROUTE_CONFIG.minOpacity,
+              1, ROUTE_CONFIG.maxOpacity,
+            ]);
+          } else if (layerId === 'routes-base') {
+            map.current.setPaintProperty(layerId, 'line-opacity', 0.15);
+          } else {
+            map.current.setPaintProperty(layerId, 'line-opacity', [
+              'interpolate',
+              ['linear'],
+              ['get', 'normalizedPassengers'],
+              0, ROUTE_CONFIG.minOpacity,
+              1, ROUTE_CONFIG.maxOpacity,
+            ]);
+          }
+          
+          map.current.setPaintProperty(layerId, 'line-width', [
+            'interpolate',
+            ['linear'],
+            ['get', 'normalizedPassengers'],
+            0, ROUTE_CONFIG.minWidth,
+            1, ROUTE_CONFIG.maxWidth,
+          ]);
+        }
+      };
+
+      // Update all route layers
+      updateLayerHighlight('routes-airline', true);
+      updateLayerHighlight('routes-base', false);
+      updateLayerHighlight('routes', false);
     } catch (error) {
       console.error('Error updating airline highlight:', error);
     }
-  }, [highlightedAirline, colorByAirline, mapLoaded]);
+  }, [highlightedAirline, mapLoaded, flightRoutes]);
 
   // Animation system for flight journeys
   useEffect(() => {
