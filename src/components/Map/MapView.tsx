@@ -1414,7 +1414,8 @@ export function MapView({
 
       // Helper function to update layer highlighting
       const updateLayerHighlight = (layerId: string, isAirlineLayer: boolean) => {
-        const layer = map.current?.getLayer(layerId);
+        if (!map.current) return;
+        const layer = map.current.getLayer(layerId);
         if (!layer) return;
 
         if (highlightedAirline) {
