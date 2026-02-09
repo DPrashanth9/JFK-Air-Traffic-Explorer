@@ -72,3 +72,40 @@ export function getAirlineDisplayName(carrierCode: string | null | undefined): s
   const upperCode = carrierCode.toUpperCase();
   return AIRLINE_DISPLAY_NAMES[upperCode] || upperCode;
 }
+
+/**
+ * Convert airline name to carrier code
+ * Used when we have airline name but need the code for matching
+ */
+export function getAirlineCodeFromName(airlineName: string | null | undefined): string {
+  if (!airlineName) return '';
+  
+  // Map of common airline names to codes
+  const nameToCode: Record<string, string> = {
+    'JetBlue': 'B6',
+    'JetBlue Airways': 'B6',
+    'Delta Air Lines': 'DL',
+    'Delta': 'DL',
+    'American Airlines': 'AA',
+    'American': 'AA',
+    'United Airlines': 'UA',
+    'United': 'UA',
+    'Alaska Airlines': 'AS',
+    'Alaska': 'AS',
+    'Southwest Airlines': 'WN',
+    'Southwest': 'WN',
+    'Spirit Airlines': 'NK',
+    'Spirit': 'NK',
+    'Frontier Airlines': 'F9',
+    'Frontier': 'F9',
+    'Hawaiian Airlines': 'HA',
+    'Hawaiian': 'HA',
+    'Sun Country Airlines': 'SY',
+    'Sun Country': 'SY',
+    'Allegiant Air': 'G4',
+    'Allegiant': 'G4',
+    'Virgin America': 'VX',
+  };
+  
+  return nameToCode[airlineName] || '';
+}

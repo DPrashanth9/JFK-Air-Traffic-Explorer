@@ -312,14 +312,14 @@ export function MapView({
       });
 
       // Add base routes source (neutral, low opacity for context)
-      // Enable lineMetrics for line-progress animation
+      // Enable simplification for better performance with many routes
       map.current.addSource('routes-base', {
         type: 'geojson',
         data: {
           type: 'FeatureCollection',
           features: [],
         },
-        // lineMetrics: true, // Not needed for simple opacity animation
+        tolerance: 0.5, // Simplification tolerance (higher = more simplified, better performance)
       });
 
       // Add base routes layer (always visible, low opacity)
@@ -345,14 +345,14 @@ export function MapView({
       });
 
       // Add airline-colored routes source
-      // Enable lineMetrics for line-progress animation
+      // Enable simplification for better performance with many routes
       map.current.addSource('routes-airline', {
         type: 'geojson',
         data: {
           type: 'FeatureCollection',
           features: [],
         },
-        // lineMetrics: true, // Not needed for simple opacity animation
+        tolerance: 0.5, // Simplification tolerance (higher = more simplified, better performance)
       });
 
       // Add airline-colored routes layer (initially hidden)
@@ -395,14 +395,14 @@ export function MapView({
       });
 
       // Add traffic-based routes source (fallback when not coloring by airline)
-      // Enable lineMetrics for line-progress animation
+      // Enable simplification for better performance with many routes
       map.current.addSource('routes', {
         type: 'geojson',
         data: {
           type: 'FeatureCollection',
           features: [],
         },
-        // lineMetrics: true, // Not needed for simple opacity animation
+        tolerance: 0.5, // Simplification tolerance (higher = more simplified, better performance)
       });
 
       // Add traffic-based routes layer
@@ -610,20 +610,35 @@ export function MapView({
       });
       introColorExpression.push(DEFAULT_AIRLINE_COLOR);
 
+      // Add outer bright glow layer for intro animation (clear and bright)
+      map.current.addLayer({
+        id: 'route-anim-glow-outer',
+        type: 'circle',
+        source: 'route-anim',
+        paint: {
+          'circle-radius': 9, // Reduced size - larger outer circle
+          'circle-color': introColorExpression as any,
+          'circle-opacity': 0.35, // More transparent for subtle glow
+          'circle-blur': 0, // No blur - clear and crisp
+          'circle-stroke-width': 0,
+        },
+      }, 'routes-airline'); // Place above routes for visibility
+
+      // Add main intro flow animation layer (airline-colored pulses - clear and bright)
       map.current.addLayer({
         id: 'route-anim-pulses',
         type: 'circle',
         source: 'route-anim',
         paint: {
-          'circle-radius': 7, // Increased from 5 to 7 for better visibility
+          'circle-radius': 5.5, // Reduced size - clear, crisp size
           'circle-color': introColorExpression as any,
-          'circle-opacity': 1.0, // Increased from 0.9 for maximum visibility
-          'circle-blur': 1.2, // Increased from 0.8 for enhanced glow effect
+          'circle-opacity': 0.7, // More transparent
+          'circle-blur': 0, // No blur - completely clear
           'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 1.5, // Increased from 1 for better visibility
-          'circle-stroke-opacity': 0.8, // Increased from 0.6 for better visibility
+          'circle-stroke-width': 2, // Slightly reduced stroke width
+          'circle-stroke-opacity': 0.75, // More transparent
         },
-      }, 'routes-airline'); // Place above routes for visibility
+      }, 'route-anim-glow-outer'); // Place above outer glow
 
       // Add animated flights source (for continuous animation toggle)
       map.current.addSource('flights-animated', {
@@ -645,6 +660,32 @@ export function MapView({
       });
       animationColorExpression.push(COLORS.flightSymbol);
       
+      // Add outer bright glow layer for continuous animation (clear and bright)
+      map.current.addLayer({
+        id: 'flights-animated-glow-outer',
+        type: 'circle',
+        source: 'flights-animated',
+        paint: {
+          'circle-radius': [
+            'interpolate',
+            ['linear'],
+            ['get', 'normalizedPassengers'],
+            0, 6, // Reduced size - larger outer circle
+            1, 10,
+          ],
+          'circle-color': [
+            'case',
+            ['has', 'carrierCode'],
+            animationColorExpression,
+            COLORS.flightSymbol,
+          ] as any,
+          'circle-opacity': 0.3, // More transparent for subtle glow
+          'circle-blur': 0, // No blur - clear and crisp
+          'circle-stroke-width': 0,
+        },
+      });
+
+      // Add main animated flights layer (clear and bright with airline colors)
       map.current.addLayer({
         id: 'flights-animated',
         type: 'circle',
@@ -654,8 +695,8 @@ export function MapView({
             'interpolate',
             ['linear'],
             ['get', 'normalizedPassengers'],
-            0, 3,
-            1, 6,
+            0, 4, // Reduced size - clear, crisp size
+            1, 6.5,
           ],
           'circle-color': [
             'case',
@@ -664,11 +705,11 @@ export function MapView({
             COLORS.flightSymbol,
           ] as any,
           'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 1,
-          'circle-opacity': 0.95,
-          'circle-blur': 0.6, // Glow effect for premium pulse
+          'circle-stroke-width': 2, // Slightly reduced stroke width
+          'circle-opacity': 0.7, // More transparent
+          'circle-blur': 0, // No blur - completely clear
         },
-      });
+      }, 'flights-animated-glow-outer'); // Place above outer glow
 
       // Add JFK marker source (distinct origin marker)
       map.current.addSource('jfk', {
@@ -1086,54 +1127,62 @@ export function MapView({
   }, [mapLoaded, flightRoutes]);
 
   // Update routes (base, airline-colored, and traffic-based)
+  // Optimized: Batched updates using requestAnimationFrame for smoother performance
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
 
-    const routesGeoJSON = routesToGeoJSON(displayRoutes, maxPassengers, flightRoutes);
-    
-    // Update base routes (always show, low opacity)
-    const baseSource = map.current.getSource('routes-base') as mapboxgl.GeoJSONSource;
-    if (baseSource) {
-      baseSource.setData(routesGeoJSON);
-    }
+    // Use requestAnimationFrame to batch updates and avoid blocking the UI
+    const updateFrame = requestAnimationFrame(() => {
+      if (!map.current) return;
 
-    // Update airline-colored routes
-    const airlineSource = map.current.getSource('routes-airline') as mapboxgl.GeoJSONSource;
-    if (airlineSource) {
-      airlineSource.setData(routesGeoJSON);
-    }
+      const routesGeoJSON = routesToGeoJSON(displayRoutes, maxPassengers, flightRoutes);
+      
+      // Batch all source updates together
+      const baseSource = map.current.getSource('routes-base') as mapboxgl.GeoJSONSource;
+      const airlineSource = map.current.getSource('routes-airline') as mapboxgl.GeoJSONSource;
+      const trafficSource = map.current.getSource('routes') as mapboxgl.GeoJSONSource;
+      
+      // Update all sources in a single frame
+      if (baseSource) {
+        baseSource.setData(routesGeoJSON);
+      }
+      if (airlineSource) {
+        airlineSource.setData(routesGeoJSON);
+      }
+      if (trafficSource) {
+        trafficSource.setData(routesGeoJSON);
+      }
 
-    // Update traffic-based routes
-    const trafficSource = map.current.getSource('routes') as mapboxgl.GeoJSONSource;
-    if (trafficSource) {
-      trafficSource.setData(routesGeoJSON);
-    }
+      // Reset animation progress when routes change
+      animationProgressRef.current.clear();
+      displayRoutes.forEach((route) => {
+        animationProgressRef.current.set(route.id, Math.random() * 0.3); // Stagger start
+      });
 
-    // Reset animation progress when routes change
-    animationProgressRef.current.clear();
-    displayRoutes.forEach((route) => {
-      animationProgressRef.current.set(route.id, Math.random() * 0.3); // Stagger start
+      // Trigger route draw-in animation when routes update
+      if (displayRoutes.length > 0) {
+        // Small delay to ensure data is set before animating
+        setTimeout(() => {
+          animateRoutesIn();
+        }, 100);
+      }
+
+      // Start intro flow animation after routes are loaded
+      // Use map.once("idle") to ensure data is fully rendered
+      // This creates the visible "pulses traveling from JFK" effect
+      if (displayRoutes.length > 0 && map.current) {
+        map.current.once('idle', () => {
+          // Small delay to let draw-in animation start first
+          setTimeout(() => {
+            startIntroFlowAnimation(routesGeoJSON, displayRoutes);
+          }, 200);
+        });
+      }
     });
 
-    // Trigger route draw-in animation when routes update
-    if (displayRoutes.length > 0) {
-      // Small delay to ensure data is set before animating
-      setTimeout(() => {
-        animateRoutesIn();
-      }, 100);
-    }
-
-    // Start intro flow animation after routes are loaded
-    // Use map.once("idle") to ensure data is fully rendered
-    // This creates the visible "pulses traveling from JFK" effect
-    if (displayRoutes.length > 0 && map.current) {
-      map.current.once('idle', () => {
-        // Small delay to let draw-in animation start first
-        setTimeout(() => {
-          startIntroFlowAnimation(routesGeoJSON, displayRoutes);
-        }, 200);
-      });
-    }
+    return () => {
+      cancelAnimationFrame(updateFrame);
+    };
   }, [displayRoutes, maxPassengers, mapLoaded, flightRoutes, animateRoutesIn, startIntroFlowAnimation]);
 
   // Update destination airports
@@ -1199,11 +1248,6 @@ export function MapView({
       // Use sine wave for smooth pulsing (0 to 1)
       const pulseValue = (Math.sin(progress * Math.PI * 2) + 1) / 2; // 0 to 1
       
-      // Pulse radius: base radius ± 25% (subtle but noticeable)
-      const baseRadius = 18; // Base radius at zoom 6
-      const radiusVariation = baseRadius * 0.25; // ±25%
-      const currentRadius = baseRadius + (pulseValue * radiusVariation * 2 - radiusVariation);
-      
       // Pulse opacity: base opacity ± 15% (subtle)
       const baseOpacity = 0.45;
       const opacityVariation = 0.15;
@@ -1211,23 +1255,31 @@ export function MapView({
 
       // Update JFK glow layer
       const glowLayer = map.current.getLayer('jfk-glow');
-      if (glowLayer) {
-        // Apply pulse to radius (multiply base by pulse factor)
-        const pulseFactor = currentRadius / baseRadius;
-        map.current.setPaintProperty('jfk-glow', 'circle-radius', [
-          '*',
-          pulseFactor,
-          [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            2, 14, // Visible even at zoom 2
-            4, 16,
-            6, 18,
-            8, 20,
-            10, 22,
-          ],
-        ] as any);
+      if (glowLayer && map.current) {
+        // Get current zoom level to calculate base radius
+        const currentZoom = map.current.getZoom();
+        // Calculate base radius based on zoom (interpolate between breakpoints)
+        let baseRadiusAtZoom = 18; // Default at zoom 6
+        if (currentZoom <= 2) {
+          baseRadiusAtZoom = 14;
+        } else if (currentZoom <= 4) {
+          baseRadiusAtZoom = 14 + (16 - 14) * ((currentZoom - 2) / 2);
+        } else if (currentZoom <= 6) {
+          baseRadiusAtZoom = 16 + (18 - 16) * ((currentZoom - 4) / 2);
+        } else if (currentZoom <= 8) {
+          baseRadiusAtZoom = 18 + (20 - 18) * ((currentZoom - 6) / 2);
+        } else if (currentZoom <= 10) {
+          baseRadiusAtZoom = 20 + (22 - 20) * ((currentZoom - 8) / 2);
+        } else {
+          baseRadiusAtZoom = 22;
+        }
+        
+        // Pulse radius: base radius ± 25% (subtle but noticeable)
+        const radiusVariation = baseRadiusAtZoom * 0.25; // ±25%
+        const pulsedRadius = baseRadiusAtZoom + (pulseValue * radiusVariation * 2 - radiusVariation);
+        
+        // Set radius as a fixed value (no zoom expression in animation)
+        map.current.setPaintProperty('jfk-glow', 'circle-radius', pulsedRadius);
         
         // Update opacity
         map.current.setPaintProperty('jfk-glow', 'circle-opacity', currentOpacity);
@@ -1253,19 +1305,58 @@ export function MapView({
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
 
+    // Ensure quantile breaks are sorted and valid
+    const sortedBreaks = [...quantileBreaks].sort((a, b) => a - b).filter((val, idx, arr) => {
+      // Remove duplicates and ensure strictly ascending order
+      return idx === 0 || val > arr[idx - 1];
+    });
+
+    // Only update if we have valid breaks (need at least 2 for a step expression)
+    if (sortedBreaks.length < 2) {
+      // Fallback to simple color if no breaks
+      map.current.setPaintProperty('states-fill', 'fill-color', [
+        'case',
+        ['has', 'passengers'],
+        COLORS.choropleth[0],
+        'rgba(0, 0, 0, 0)',
+      ]);
+      return;
+    }
+
+    // Build step expression with sorted breaks
+    // Step expression format: ['step', input, defaultOutput, break1, output1, break2, output2, ...]
+    const stepExpression: any[] = [
+      'step',
+      ['get', 'passengers'],
+      COLORS.choropleth[0], // Default color for values below first break
+    ];
+
+    // Add breakpoints (skip first break as it's the default threshold)
+    // We need at least one breakpoint pair for the step expression to be valid
+    const breaksToUse = sortedBreaks.slice(1);
+    
+    if (breaksToUse.length === 0) {
+      // If no breaks after filtering, use simple color
+      map.current.setPaintProperty('states-fill', 'fill-color', [
+        'case',
+        ['has', 'passengers'],
+        COLORS.choropleth[0],
+        'rgba(0, 0, 0, 0)',
+      ]);
+      return;
+    }
+
+    // Add breakpoint pairs: [breakValue, color]
+    breaksToUse.forEach((breakVal, i) => {
+      stepExpression.push(breakVal);
+      stepExpression.push(COLORS.choropleth[Math.min(i + 1, COLORS.choropleth.length - 1)]);
+    });
+
     // Update fill-color expression with quantile breaks
     map.current.setPaintProperty('states-fill', 'fill-color', [
       'case',
       ['has', 'passengers'],
-      [
-        'step',
-        ['get', 'passengers'],
-        COLORS.choropleth[0],
-        ...quantileBreaks.slice(1).flatMap((breakVal, i) => [
-          breakVal,
-          COLORS.choropleth[Math.min(i + 1, COLORS.choropleth.length - 1)],
-        ]),
-      ],
+      stepExpression,
       'rgba(0, 0, 0, 0)',
     ]);
   }, [quantileBreaks, mapLoaded]);
@@ -1295,8 +1386,12 @@ export function MapView({
 
     // Show/hide animated flights
     const flightsLayer = map.current.getLayer('flights-animated');
+    const flightsGlowLayer = map.current.getLayer('flights-animated-glow-outer');
     if (flightsLayer) {
       map.current.setLayoutProperty('flights-animated', 'visibility', animateFlights ? 'visible' : 'none');
+    }
+    if (flightsGlowLayer) {
+      map.current.setLayoutProperty('flights-animated-glow-outer', 'visibility', animateFlights ? 'visible' : 'none');
     }
   }, [colorByAirline, animateFlights, mapLoaded]);
 

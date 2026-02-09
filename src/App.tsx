@@ -67,16 +67,21 @@ function App() {
 
   // Handle airline click from list
   const handleAirlineClick = useCallback((airlineName: string) => {
+    // Find the carrier code for this airline name
+    const airlineRanking = aggregations.airlineRankings.find(r => r.carrier === airlineName);
+    const carrierCode = airlineRanking?.carrierCode || null;
+    
     if (filters.airline === airlineName) {
       // If already filtered by this airline, clear the filter
       setAirline(null);
       setHighlightedAirline(null);
     } else {
-      // Filter by this airline
+      // Filter by this airline (use name for filter, code for highlighting)
       setAirline(airlineName);
-      setHighlightedAirline(airlineName);
+      // Use carrier code for map highlighting - this ensures routes are properly highlighted
+      setHighlightedAirline(carrierCode);
     }
-  }, [filters.airline, setAirline]);
+  }, [filters.airline, setAirline, aggregations.airlineRankings]);
 
   // Handle filter reset
   const handleReset = useCallback(() => {
@@ -108,7 +113,7 @@ function App() {
 
   if (dataError) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-panel p-8">
+      <div className="h-screen w-screen flex items-center justify-center bg-panel p-4 sm:p-8">
         <ErrorMessage 
           message={dataError}
           onRetry={() => window.location.reload()}
@@ -118,9 +123,9 @@ function App() {
   }
 
   return (
-    <div className="h-screen w-screen flex overflow-hidden bg-panel">
+    <div className="h-screen w-screen flex flex-col lg:flex-row overflow-hidden bg-panel">
       {/* Left Panel - Analytics */}
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full w-full lg:w-auto lg:min-w-[380px] max-w-full overflow-hidden">
         <AnalyticsPanel
           aggregations={aggregations}
           funFacts={funFacts}
@@ -141,9 +146,9 @@ function App() {
       </div>
 
       {/* Right Side - Map and Charts */}
-      <div className="flex-1 flex flex-col h-full">
+      <div className="flex-1 flex flex-col h-full min-w-0">
         {/* Main Map */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative min-h-[400px]">
           <MapView
             routeRankings={aggregations.routeRankings}
             stateRankings={aggregations.stateRankings}
@@ -166,8 +171,8 @@ function App() {
         </div>
 
         {/* Bottom Charts */}
-        <div className="h-72 bg-panel border-t border-gray-800 p-4 overflow-hidden">
-          <div className="grid grid-cols-2 gap-4 h-full">
+        <div className="h-72 bg-panel border-t border-gray-800 p-2 sm:p-4 overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-4 h-full">
             <DestinationBarChart
               stateRankings={aggregations.stateRankings}
               maxItems={10}

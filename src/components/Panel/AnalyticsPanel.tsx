@@ -85,7 +85,7 @@ export function AnalyticsPanel({
       {isMinimized && (
         <button
           onClick={() => setIsMinimized(false)}
-          className="bg-panel border-r border-gray-800 h-full w-14 flex flex-col items-center justify-center hover:bg-panel-light transition-colors group"
+          className="bg-panel border-r border-gray-800 h-full w-10 lg:w-14 flex flex-col items-center justify-center hover:bg-panel-light transition-colors group"
           aria-label="Expand insights panel"
           title="Expand insights panel"
         >
@@ -108,16 +108,16 @@ export function AnalyticsPanel({
       {/* Main Panel */}
       <div
         className={`bg-panel h-full flex flex-col border-r border-gray-800 transition-all duration-300 ease-in-out ${
-          isMinimized ? 'w-0 overflow-hidden' : 'w-80'
+          isMinimized ? 'w-0 overflow-hidden' : 'w-full lg:w-80'
         }`}
       >
         {/* Header with minimize button */}
-        <div className="p-4 border-b border-gray-800 flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-bold text-white">
+        <div className="p-3 sm:p-4 border-b border-gray-800 flex items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-base sm:text-lg font-bold text-white truncate">
               JFK Air Traffic Explorer
             </h1>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-xs sm:text-sm text-gray-400 mt-1 truncate">
               Domestic passenger traffic analysis
             </p>
           </div>
@@ -140,7 +140,7 @@ export function AnalyticsPanel({
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto panel-scroll">
-        <div className="p-4 space-y-4">
+        <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
           {/* Filters */}
           <FilterControls
             selectedMonth={filters.month}

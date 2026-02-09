@@ -74,9 +74,13 @@ export function AirlineDonutChart({
               {data.map((entry, index) => {
                 // Get color from airline color map if available, otherwise use Others color
                 const airlineRanking = airlineRankings.find(r => r.carrier === entry.name);
+                const carrierCode = airlineRanking?.carrierCode;
                 const color = entry.name === 'Others' 
                   ? OTHERS_COLOR 
-                  : getAirlineColor(airlineRanking?.carrierCode);
+                  : getAirlineColor(carrierCode);
+                
+                // Check if this entry is highlighted (compare by carrier code)
+                const isHighlighted = highlightedAirline && carrierCode === highlightedAirline;
                 
                 return (
                   <Cell
@@ -84,12 +88,12 @@ export function AirlineDonutChart({
                     fill={color}
                     opacity={
                       highlightedAirline
-                        ? entry.name === highlightedAirline
+                        ? isHighlighted
                           ? 1
                           : 0.4
                         : 1
                     }
-                    stroke={entry.name === highlightedAirline ? '#ffffff' : 'transparent'}
+                    stroke={isHighlighted ? '#ffffff' : 'transparent'}
                     strokeWidth={2}
                   />
                 );

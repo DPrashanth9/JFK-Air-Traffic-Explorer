@@ -30,6 +30,13 @@ export function useAggregations({
     
     async function loadAggregations() {
       try {
+        // Clear cache when filters change to ensure fresh data
+        if (airline || state) {
+          // Clear relevant cache entries when filters are active
+          const apiCache = (await import('../utils/cache')).apiCache;
+          apiCache.clearAll();
+        }
+        
         // Load all data in parallel
         const [aggData, stateData, airlineData, routeData] = await Promise.all([
           getAggregations({ month, airline, state }),
