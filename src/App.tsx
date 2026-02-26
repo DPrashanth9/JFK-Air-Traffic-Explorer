@@ -102,8 +102,11 @@ function App() {
     setHighlightedAirline(airline);
   }, [setAirline]);
 
-  // Show loading or error state
-  if (dataLoading && availableMonths.length === 0) {
+  // Show partial UI while loading initial data (progressive loading)
+  const isInitialLoad = dataLoading && availableMonths.length === 0;
+  
+  // Show minimal loading only on very first load
+  if (isInitialLoad && !availableMonths.length) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-panel">
         <LoadingSpinner message="Loading flight data..." />
@@ -112,15 +115,27 @@ function App() {
   }
 
   if (dataError) {
+    // Check if it's a connection/timeout error
+    const isConnectionError = dataError.includes('timeout') || 
+                              dataError.includes('Failed to fetch') ||
+                              dataError.includes('ERR_NETWORK');
+    
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-panel p-4 sm:p-8">
         <ErrorMessage 
-          message={dataError}
+          message={
+            isConnectionError 
+              ? `Connection Error: ${dataError}\n\nPlease ensure the backend server is running:\n1. Open a terminal\n2. cd backend\n3. .\\venv\\Scripts\\Activate.ps1\n4. uvicorn app.main:app --reload --port 8000`
+              : dataError
+          }
           onRetry={() => window.location.reload()}
         />
       </div>
     );
   }
+
+  // Show skeleton loaders while aggregations are loading
+  const isAggregationsLoading = aggregations.routeRankings.length === 0 && !dataLoading;
 
   return (
     <div className="h-screen w-screen flex flex-col lg:flex-row overflow-hidden bg-panel">
@@ -142,6 +157,7 @@ function App() {
           highlightedState={highlightedState}
           highlightedAirline={highlightedAirline}
           quantileBreaks={quantileBreaks}
+          isLoading={isAggregationsLoading}
         />
       </div>
 
@@ -149,43 +165,60 @@ function App() {
       <div className="flex-1 flex flex-col h-full min-w-0">
         {/* Main Map */}
         <div className="flex-1 relative min-h-[400px]">
-          <MapView
-            routeRankings={aggregations.routeRankings}
-            stateRankings={aggregations.stateRankings}
-            routeMode={routeMode}
-            topNRoutes={topNRoutes}
-            onRouteModeChange={setRouteMode}
-            onTopNChange={setTopNRoutes}
-            highlightedState={highlightedState}
-            highlightedAirline={highlightedAirline}
-            onStateClick={handleStateClick}
-            onAirlineClick={(code) => {
-              if (code === highlightedAirline || code === '') {
-                setHighlightedAirline(null);
-              } else {
-                setHighlightedAirline(code);
-              }
-            }}
-            flightRoutes={filteredRoutes}
-          />
+          {isAggregationsLoading ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-panel">
+              <LoadingSpinner message="Loading map data..." />
+            </div>
+          ) : (
+            <MapView
+              routeRankings={aggregations.routeRankings}
+              stateRankings={aggregations.stateRankings}
+              routeMode={routeMode}
+              topNRoutes={topNRoutes}
+              onRouteModeChange={setRouteMode}
+              onTopNChange={setTopNRoutes}
+              highlightedState={highlightedState}
+              highlightedAirline={highlightedAirline}
+              onStateClick={handleStateClick}
+              onAirlineClick={(code) => {
+                if (code === highlightedAirline || code === '') {
+                  setHighlightedAirline(null);
+                } else {
+                  setHighlightedAirline(code);
+                }
+              }}
+              flightRoutes={filteredRoutes}
+            />
+          )}
         </div>
 
         {/* Bottom Charts */}
         <div className="h-72 bg-panel border-t border-gray-800 p-2 sm:p-4 overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-4 h-full">
-            <DestinationBarChart
-              stateRankings={aggregations.stateRankings}
-              maxItems={10}
-              highlightedState={highlightedState}
-              onStateClick={handleStateClick}
-            />
-            <AirlineDonutChart
-              airlineRankings={aggregations.airlineRankings}
-              maxItems={5}
-              highlightedAirline={highlightedAirline}
-              onAirlineClick={handleAirlineClick}
-            />
-          </div>
+          {isAggregationsLoading ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-4 h-full">
+              <div className="flex items-center justify-center">
+                <LoadingSpinner message="Loading charts..." />
+              </div>
+              <div className="flex items-center justify-center">
+                <LoadingSpinner message="Loading charts..." />
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-4 h-full">
+              <DestinationBarChart
+                stateRankings={aggregations.stateRankings}
+                maxItems={10}
+                highlightedState={highlightedState}
+                onStateClick={handleStateClick}
+              />
+              <AirlineDonutChart
+                airlineRankings={aggregations.airlineRankings}
+                maxItems={5}
+                highlightedAirline={highlightedAirline}
+                onAirlineClick={handleAirlineClick}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

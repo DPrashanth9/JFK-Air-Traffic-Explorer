@@ -24,9 +24,11 @@ export function useAggregations({
   const [airlineRankingsData, setAirlineRankingsData] = useState<AirlineRanking[]>([]);
   const [routeRankingsData, setRouteRankingsData] = useState<RouteRanking[]>([]);
   
-  // Load all aggregation data
+  // Load all aggregation data with progressive loading
   useEffect(() => {
     if (!month) return; // Wait for month to be set
+    
+    let cancelled = false;
     
     async function loadAggregations() {
       try {
@@ -37,24 +39,35 @@ export function useAggregations({
           apiCache.clearAll();
         }
         
-        // Load all data in parallel
-        const [aggData, stateData, airlineData, routeData] = await Promise.all([
+        // Load all routes at once (no limit) - data is small, so this is fast
+        // The rendering will be progressive to keep UI smooth
+        const routeData = await getRouteRankings({ month, airline, state });
+        if (cancelled) return;
+        setRouteRankingsData(routeData.routes || []);
+        
+        // Then load aggregations and rankings in parallel (non-blocking)
+        const [aggData, stateData, airlineData] = await Promise.all([
           getAggregations({ month, airline, state }),
           getStateRankings({ month, airline, limit: 10 }),
           getAirlineRankings({ month, limit: 10 }),
-          getRouteRankings({ month, airline, state }),
         ]);
+        
+        if (cancelled) return;
         
         setAggregationsData(aggData);
         setStateRankingsData(stateData.rankings || []);
         setAirlineRankingsData(airlineData.rankings || []);
-        setRouteRankingsData(routeData.routes || []);
+        
       } catch (error) {
         console.error('Failed to load aggregations:', error);
       }
     }
     
     loadAggregations();
+    
+    return () => {
+      cancelled = true;
+    };
   }, [month, airline, state]);
   
   return useMemo(() => {

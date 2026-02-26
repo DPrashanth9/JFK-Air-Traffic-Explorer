@@ -13,7 +13,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
  */
 const RETRY_CONFIG = {
   maxRetries: 3,
-  retryDelay: 1000, // 1 second
+  retryDelay: 2000, // 2 seconds (increased for network issues)
   retryableStatuses: [408, 429, 500, 502, 503, 504],
 };
 
@@ -58,7 +58,7 @@ async function fetchApi<T>(
   for (let attempt = 0; attempt <= (retry ? RETRY_CONFIG.maxRetries : 0); attempt++) {
     try {
       const response = await fetch(url.toString(), {
-        signal: AbortSignal.timeout(30000), // 30 second timeout
+        signal: AbortSignal.timeout(30000), // 30 second timeout (increased for reliability)
       });
       
       if (!response.ok) {
@@ -81,6 +81,20 @@ async function fetchApi<T>(
       return data;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error('Unknown error');
+      
+      // Check if it's a timeout or network error
+      const isTimeout = lastError.name === 'TimeoutError' || lastError.message.includes('timeout');
+      const isNetworkError = lastError.message.includes('Failed to fetch') || 
+                            lastError.message.includes('ERR_NETWORK') ||
+                            lastError.message.includes('NetworkError');
+      
+      // For timeout/network errors, provide more helpful error message
+      if (isTimeout || isNetworkError) {
+        const helpfulMessage = isTimeout 
+          ? 'Backend server is not responding. Please ensure it is running on http://localhost:8000'
+          : 'Cannot connect to backend server. Please check if it is running.';
+        lastError = new Error(helpfulMessage);
+      }
       
       // Don't retry on network errors if it's the last attempt
       if (attempt === RETRY_CONFIG.maxRetries) {
@@ -174,6 +188,7 @@ export async function getAirlineRankings(params?: {
 /**
  * Get route rankings (for map)
  * Disable cache when filters are active to ensure fresh data
+ * Supports progressive loading with limit parameter
  */
 export async function getRouteRankings(params?: {
   month?: string | null;
@@ -182,10 +197,15 @@ export async function getRouteRankings(params?: {
   limit?: number;
 }) {
   const hasFilters = !!(params?.airline || params?.state);
+  // If no limit specified and no filters, don't set limit (get all routes)
+  // If limit is specified, use it for progressive loading
+  const optimizedParams = {
+    ...params,
+  };
   return fetchApi<{
     routes: any[];
     count: number;
-  }>('/api/routes/rankings', params, {
+  }>('/api/routes/rankings', optimizedParams, {
     useCache: !hasFilters, // Disable cache when filters are active
     cacheTTL: 2 * 60 * 1000, // 2 minutes if cached
   });

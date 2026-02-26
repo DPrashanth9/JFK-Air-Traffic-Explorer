@@ -5,6 +5,7 @@ import { FilterControls } from './FilterControls';
 import { RankedList } from './RankedList';
 import { FunFacts } from './FunFacts';
 import { DataNote } from './DataNote';
+import { SkeletonCard, SkeletonList } from '../common/SkeletonLoader';
 import { formatCompactNumber, formatNumber } from '../../utils/formatters';
 import { COLORS } from '../../utils/constants';
 
@@ -32,6 +33,9 @@ interface AnalyticsPanelProps {
   
   // Passenger density legend
   quantileBreaks?: number[];
+  
+  // Loading state
+  isLoading?: boolean;
 }
 
 export function AnalyticsPanel({
@@ -50,6 +54,7 @@ export function AnalyticsPanel({
   highlightedState,
   highlightedAirline,
   quantileBreaks = [],
+  isLoading = false,
 }: AnalyticsPanelProps) {
   const [isMinimized, setIsMinimized] = useState(false);
   
@@ -189,9 +194,18 @@ export function AnalyticsPanel({
 
           {/* Stat Cards - 2x2 Grid */}
           <div className="grid grid-cols-2 gap-3">
-            <StatCard
-              label="Total Passengers"
-              value={formatCompactNumber(totalPassengers)}
+            {isLoading ? (
+              <>
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+              </>
+            ) : (
+              <>
+                <StatCard
+                  label="Total Passengers"
+                  value={formatCompactNumber(totalPassengers)}
               change={comparison.passengerChange}
             />
             <StatCard
@@ -203,47 +217,61 @@ export function AnalyticsPanel({
               value={topState?.stateCode || '—'}
               sublabel={topState ? `${topState.name} (${topState.share}%)` : undefined}
             />
-            <StatCard
-              label="Top Airline"
-              value={topAirline?.carrierCode || '—'}
-              sublabel={topAirline ? `${topAirline.name} (${topAirline.share}%)` : undefined}
-            />
+                <StatCard
+                  label="Top Airline"
+                  value={topAirline?.carrierCode || '—'}
+                  sublabel={topAirline ? `${topAirline.name} (${topAirline.share}%)` : undefined}
+                />
+              </>
+            )}
           </div>
 
           {/* Additional stat */}
-          <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-500 uppercase">
-                Avg. Passengers/Flight
-              </span>
-              <span className="text-lg font-bold text-gray-900">
-                {formatNumber(avgPassengersPerFlight)}
-              </span>
+          {isLoading ? (
+            <SkeletonCard />
+          ) : (
+            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-gray-500 uppercase">
+                  Avg. Passengers/Flight
+                </span>
+                <span className="text-lg font-bold text-gray-900">
+                  {formatNumber(avgPassengersPerFlight)}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Fun Facts */}
-          <FunFacts facts={funFacts} />
+          {!isLoading && <FunFacts facts={funFacts} />}
 
           {/* State Rankings */}
-          <RankedList
-            title="Top Destination States"
-            items={stateItems}
-            maxItems={10}
-            onItemClick={(item) => onStateClick?.(item.name)}
-            highlightedItem={highlightedState}
-            valueLabel="passengers"
-          />
+          {isLoading ? (
+            <SkeletonList count={10} />
+          ) : (
+            <RankedList
+              title="Top Destination States"
+              items={stateItems}
+              maxItems={10}
+              onItemClick={(item) => onStateClick?.(item.name)}
+              highlightedItem={highlightedState}
+              valueLabel="passengers"
+            />
+          )}
 
           {/* Airline Rankings */}
-          <RankedList
-            title="Top Airlines"
-            items={airlineItems}
-            maxItems={10}
-            onItemClick={(item) => onAirlineClick?.(item.name)}
-            highlightedItem={highlightedAirline}
-            valueLabel="flights"
-          />
+          {isLoading ? (
+            <SkeletonList count={10} />
+          ) : (
+            <RankedList
+              title="Top Airlines"
+              items={airlineItems}
+              maxItems={10}
+              onItemClick={(item) => onAirlineClick?.(item.name)}
+              highlightedItem={highlightedAirline}
+              valueLabel="flights"
+            />
+          )}
 
           {/* Data Note */}
           <DataNote currentMonth={filters.month} />

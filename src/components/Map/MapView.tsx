@@ -2,7 +2,7 @@ import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { RouteRanking, StateRanking, RouteMode, FlightRoute } from '../../types';
 import { MAP_CONFIG, JFK_COORDINATES, COLORS, ROUTE_CONFIG } from '../../utils/constants';
-import { AIRLINE_COLORS, DEFAULT_AIRLINE_COLOR, getAirlineDisplayName } from '../../utils/airlineColors';
+import { AIRLINE_COLORS, DEFAULT_AIRLINE_COLOR, getAirlineDisplayName, getAirlineCodeFromName } from '../../utils/airlineColors';
 import { routesToGeoJSON, routesToAirportsGeoJSON, getPointAlongLine } from '../../utils/mapUtils';
 import { formatNumber, formatDistance } from '../../utils/formatters';
 import { MapControls } from './MapControls';
@@ -319,7 +319,7 @@ export function MapView({
           type: 'FeatureCollection',
           features: [],
         },
-        tolerance: 0.5, // Simplification tolerance (higher = more simplified, better performance)
+        tolerance: 0.8, // Simplification tolerance (higher = more simplified, better performance with many routes)
       });
 
       // Add base routes layer (always visible, low opacity)
@@ -352,7 +352,7 @@ export function MapView({
           type: 'FeatureCollection',
           features: [],
         },
-        tolerance: 0.5, // Simplification tolerance (higher = more simplified, better performance)
+        tolerance: 0.8, // Simplification tolerance (higher = more simplified, better performance with many routes)
       });
 
       // Add airline-colored routes layer (initially hidden)
@@ -402,7 +402,7 @@ export function MapView({
           type: 'FeatureCollection',
           features: [],
         },
-        tolerance: 0.5, // Simplification tolerance (higher = more simplified, better performance)
+        tolerance: 0.8, // Simplification tolerance (higher = more simplified, better performance with many routes)
       });
 
       // Add traffic-based routes layer
@@ -1127,16 +1127,20 @@ export function MapView({
   }, [mapLoaded, flightRoutes]);
 
   // Update routes (base, airline-colored, and traffic-based)
-  // Optimized: Batched updates using requestAnimationFrame for smoother performance
+  // Optimized: Batched updates using requestAnimationFrame for smooth performance
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
+    
+    // Skip update if no routes to display (prevents unnecessary rendering)
+    if (displayRoutes.length === 0) return;
 
     // Use requestAnimationFrame to batch updates and avoid blocking the UI
+    // This ensures smooth rendering even with all 45 routes
     const updateFrame = requestAnimationFrame(() => {
       if (!map.current) return;
 
       const routesGeoJSON = routesToGeoJSON(displayRoutes, maxPassengers, flightRoutes);
-      
+    
       // Batch all source updates together
       const baseSource = map.current.getSource('routes-base') as mapboxgl.GeoJSONSource;
       const airlineSource = map.current.getSource('routes-airline') as mapboxgl.GeoJSONSource;
@@ -1403,11 +1407,27 @@ export function MapView({
 
     try {
       // Build a set of destination codes that have routes for the highlighted airline
+      // Check both flightRoutes (if available) and routeRankings
       const highlightedDestinations = new Set<string>();
-      if (highlightedAirline && flightRoutes) {
-        flightRoutes.forEach(fr => {
-          if (fr.carrierCode === highlightedAirline) {
-            highlightedDestinations.add(fr.destinationCode);
+      if (highlightedAirline) {
+        const highlightedAirlineUpper = highlightedAirline.toUpperCase();
+        
+        // Check flightRoutes if available (most reliable source)
+        if (flightRoutes) {
+          flightRoutes.forEach(fr => {
+            if (fr.carrierCode?.toUpperCase() === highlightedAirlineUpper) {
+              highlightedDestinations.add(fr.destinationCode);
+            }
+          });
+        }
+        
+        // Also check routeRankings - convert primaryCarrier name to code and match
+        routeRankings.forEach(route => {
+          if (route.primaryCarrier) {
+            const routeCarrierCode = getAirlineCodeFromName(route.primaryCarrier);
+            if (routeCarrierCode.toUpperCase() === highlightedAirlineUpper) {
+              highlightedDestinations.add(route.destinationCode);
+            }
           }
         });
       }
@@ -1419,13 +1439,18 @@ export function MapView({
         if (!layer) return;
 
         if (highlightedAirline) {
+          // Normalize the highlighted airline code to uppercase for comparison
+          const highlightedAirlineUpper = highlightedAirline.toUpperCase();
+          
           // Check if route matches highlighted airline by:
-          // 1. primaryCarrierCode matches, OR
+          // 1. primaryCarrierCode matches (normalize both to uppercase in comparison)
           // 2. destinationCode is in highlightedDestinations set
+          // Note: Mapbox doesn't support case-insensitive comparison, so we ensure
+          // primaryCarrierCode is stored in uppercase in the GeoJSON
           const highlightExpression: any[] = [
             'case',
-            // Check primaryCarrierCode match
-            ['==', ['coalesce', ['get', 'primaryCarrierCode'], ''], highlightedAirline],
+            // Check primaryCarrierCode match (should be uppercase in GeoJSON)
+            ['==', ['coalesce', ['get', 'primaryCarrierCode'], ''], highlightedAirlineUpper],
             true,
             // Check if destination has flights from this airline
             ['in', ['get', 'destinationCode'], ['literal', Array.from(highlightedDestinations)]],

@@ -47,9 +47,10 @@ export function generateArc(
   
   if (adaptive) {
     // Adaptive point count based on distance
+    // Optimized for performance: fewer points for faster rendering
     // Shorter routes need fewer points, longer routes need more
-    // Range: 15-50 points
-    pointCount = Math.max(15, Math.min(50, Math.floor(distance * 100)));
+    // Range: 12-35 points (reduced from 15-50 for better performance)
+    pointCount = Math.max(12, Math.min(35, Math.floor(distance * 80)));
   }
   
   // Control point offset (perpendicular to the line, scaled by distance)
@@ -93,8 +94,9 @@ export function routesToGeoJSON(
   maxPassengers: number,
   flightRoutes?: FlightRoute[] // Optional: individual flight routes for airline coloring
 ): GeoJSON.FeatureCollection<GeoJSON.LineString> {
-  // Use adaptive point count when rendering many routes
-  const useAdaptive = routes.length > 50;
+  // Use adaptive point count when rendering many routes (optimize for 20+ routes)
+  // Fewer points = faster rendering, but still smooth curves
+  const useAdaptive = routes.length > 20;
   
   // Pre-build flight routes map for O(1) lookup instead of O(n) filter
   const flightRoutesMap = new Map<string, FlightRoute[]>();
@@ -146,7 +148,7 @@ export function routesToGeoJSON(
         distance: route.distanceMiles,
         avgPerFlight: route.avgPassengersPerFlight,
         primaryCarrier: route.primaryCarrier,
-        primaryCarrierCode: primaryCarrierCode,
+        primaryCarrierCode: primaryCarrierCode.toUpperCase(), // Ensure uppercase for consistent matching
         normalizedPassengers,
         rank: index + 1,
       },

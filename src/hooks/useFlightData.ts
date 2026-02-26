@@ -66,50 +66,63 @@ export function useFlightData(): UseFlightDataReturn {
     loadFilters();
   }, []);
   
-  // Load routes when filters change
+  // Load routes when filters change (with debouncing for filter changes)
   useEffect(() => {
-    async function loadRoutes() {
-      if (!filters.month) return; // Wait for month to be set
-      
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await getRoutes({
-          month: filters.month,
-          airline: filters.airline || undefined,
-          state: filters.state || undefined,
-        });
-        
-        // Transform API response to FlightRoute format
-        const routes: FlightRoute[] = response.routes.map((r: any) => ({
-          id: `${r.month}-JFK-${r.destinationCode}-${r.carrierCode}`,
-          month: r.month,
-          origin: 'JFK' as const,
-          destinationCode: r.destinationCode,
-          destinationName: r.destinationName,
-          destinationCity: r.destinationCity,
-          destinationState: r.destinationState,
-          destinationStateCode: r.destinationStateCode,
-          destinationLat: r.destinationLat,
-          destinationLon: r.destinationLon,
-          distanceMiles: r.distanceMiles,
-          carrier: r.carrier,
-          carrierCode: r.carrierCode,
-          passengers: r.passengers,
-          flights: r.flights,
-        }));
-        
-        setAllRoutes(routes);
-      } catch (error) {
-        console.error('Failed to load routes:', error);
-        setError(error instanceof Error ? error.message : 'Failed to load routes');
-        setAllRoutes([]);
-      } finally {
-        setIsLoading(false);
-      }
-    }
+    if (!filters.month) return; // Wait for month to be set
     
-    loadRoutes();
+    let cancelled = false;
+    const timeoutId = setTimeout(() => {
+      async function loadRoutes() {
+        setIsLoading(true);
+        setError(null);
+        try {
+          const response = await getRoutes({
+            month: filters.month,
+            airline: filters.airline || undefined,
+            state: filters.state || undefined,
+          });
+          
+          if (cancelled) return;
+          
+          // Transform API response to FlightRoute format
+          const routes: FlightRoute[] = response.routes.map((r: any) => ({
+            id: `${r.month}-JFK-${r.destinationCode}-${r.carrierCode}`,
+            month: r.month,
+            origin: 'JFK' as const,
+            destinationCode: r.destinationCode,
+            destinationName: r.destinationName,
+            destinationCity: r.destinationCity,
+            destinationState: r.destinationState,
+            destinationStateCode: r.destinationStateCode,
+            destinationLat: r.destinationLat,
+            destinationLon: r.destinationLon,
+            distanceMiles: r.distanceMiles,
+            carrier: r.carrier,
+            carrierCode: r.carrierCode,
+            passengers: r.passengers,
+            flights: r.flights,
+          }));
+          
+          setAllRoutes(routes);
+        } catch (error) {
+          if (cancelled) return;
+          console.error('Failed to load routes:', error);
+          setError(error instanceof Error ? error.message : 'Failed to load routes');
+          setAllRoutes([]);
+        } finally {
+          if (!cancelled) {
+            setIsLoading(false);
+          }
+        }
+      }
+      
+      loadRoutes();
+    }, filters.airline || filters.state ? 300 : 0); // Debounce filter changes, but not initial load
+    
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, [filters.month, filters.airline, filters.state]);
   
   // Filter setters

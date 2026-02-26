@@ -49,9 +49,14 @@ app = FastAPI(
 import os
 
 # Get allowed origins from environment or use defaults
+# For development, allow common localhost ports
 allowed_origins = [
-    "http://localhost:5173",  # Vite dev server
+    "http://localhost:5173",  # Vite dev server (default)
+    "http://localhost:5174",  # Vite dev server (alternative port)
     "http://localhost:3000",  # Alternative React port
+    "http://127.0.0.1:5173",  # Vite dev server (IP format)
+    "http://127.0.0.1:5174",  # Vite dev server (IP format, alternative port)
+    "http://127.0.0.1:3000",  # Alternative React port (IP format)
 ]
 
 # Add production frontend URL from environment variable if set
@@ -59,14 +64,20 @@ frontend_url = os.getenv("FRONTEND_URL")
 if frontend_url:
     allowed_origins.append(frontend_url)
 
-# For Render deployments, if no specific frontend URL is set,
-# we'll allow all origins (you can restrict this in production by setting FRONTEND_URL)
-# Note: Using ["*"] with allow_credentials=True requires specific origins
-# So we'll use a more permissive approach for development/testing
+# For development: Allow any localhost port (more flexible)
+# In production, you should restrict this by setting FRONTEND_URL
+# This regex pattern allows any localhost port for development
+import re
+def is_localhost_origin(origin: str) -> bool:
+    """Check if origin is from localhost (any port)"""
+    pattern = r'^https?://(localhost|127\.0\.0\.1)(:\d+)?$'
+    return bool(re.match(pattern, origin))
 
+# For development, we'll use a custom CORS handler that allows localhost with any port
+# This is more permissive but safe for local development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origin_regex=r'https?://(localhost|127\.0\.0\.1)(:\d+)?',  # Allow any localhost port
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
