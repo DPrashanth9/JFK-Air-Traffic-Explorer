@@ -73,11 +73,15 @@ def is_localhost_origin(origin: str) -> bool:
     pattern = r'^https?://(localhost|127\.0\.0\.1)(:\d+)?$'
     return bool(re.match(pattern, origin))
 
-# For development, we'll use a custom CORS handler that allows localhost with any port
-# This is more permissive but safe for local development
+# Configure CORS
+# - Always allow localhost (any port) for development
+# - Additionally allow explicit frontend URLs (e.g., Render static site) via FRONTEND_URL
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r'https?://(localhost|127\.0\.0\.1)(:\d+)?',  # Allow any localhost port
+    # Explicit list of allowed origins (e.g. your Render frontend)
+    allow_origins=allowed_origins,
+    # Plus any localhost/127.0.0.1 port for local dev
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
